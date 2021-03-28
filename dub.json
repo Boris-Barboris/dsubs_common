@@ -1,0 +1,20 @@
+{
+	"name": "dsubs_common",
+	"homepage": "https://github.com/Boris-Barboris/dsubs_common",
+	"version": "0.3.0",
+	"authors": [
+		"Boris-Barboris"
+	],
+	"dependencies": {
+		"gfm:math": "~>6.2.7",
+		"painlesstraits": "0.3.0",
+		"crypto": ">=0.2.13"
+	},
+	"buildRequirements": [
+		"requireBoundsCheck"
+	],
+	"description": "Common library for dsubs",
+	"copyright": "Copyright (C) 2017-2021, Alexander Baranin",
+	"targetType": "library",
+	"license": "AGPL-3.0"
+}
