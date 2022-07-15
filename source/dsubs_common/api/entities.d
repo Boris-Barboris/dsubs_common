@@ -118,13 +118,12 @@ struct SubmarineTemplate
 enum WeaponParamType: ushort
 {
 	none = 0,				/// no weapon params available
-	marchCourse = 1,		/// march/RTE course.
+	course = 1,				/// march/RTE course.
 	sensorMode = 1 << 1,
 	marchSpeed = 1 << 2, 	/// speed before activation. RTE speed.
 	activeSpeed = 1 << 3,	/// speed after activation
 	searchPattern = 1 << 4,
-	activationRange = 1 << 5,
-	activeCourse = 1 << 6	/// main search direction after activation
+	activationRange = 1 << 5
 }
 
 /// Available weapon sensor modes. Bit mask.
@@ -213,7 +212,7 @@ struct WeaponTemplate
 	/// description to present to the player on prepare screen
 	string description;
 
-	/// Approximate turning radius, useful for firing solution calculations
+	/// Approximate turning radius, used in estimate weapon trajectory drawing
 	float turningRadius;
 
 	/// Set of available launch parameters
