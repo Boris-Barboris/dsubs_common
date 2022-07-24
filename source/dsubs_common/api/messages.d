@@ -44,7 +44,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 19;
+	int apiVersion = 20;
 }
 
 /** This message requests authorization from the server.
@@ -162,8 +162,8 @@ struct ReconnectStateRes
 	/// Globally-unique submarine identifier. Can be used to restore CIC state
 	/// from backup after client crash.
 	string subId;
-	@MaxLenAttr(64) string submarineName;
-	@MaxLenAttr(64) string propulsorName;
+	string submarineName;
+	string propulsorName;
 	KinematicSnapshot subSnap;
 	WireSnapshot[] wireSnaps;
 	float targetCourse;
@@ -171,6 +171,7 @@ struct ReconnectStateRes
 	float[] listenDirs;
 	float[] desiredWireLenghts;
 	TubeFullState[] tubeStates;
+	WireGuidanceFullState[] wireGuidanceStates;
 	AmmoRoomFullState[] ammoRoomStates;
 	/// Current list of all scenario map elements that must be rendered
 	MapElement[] mapElements;
@@ -306,6 +307,32 @@ struct LaunchTubeReq
 	/// the request is ignored.
 	string weaponName;
 	@MaxLenAttr(32) WeaponParamValue[] weaponParams;
+}
+
+
+/// Client sends commands to update parameters of a torpedo
+struct WireGuidanceUpdateParamsReq
+{
+	__gshared const int g_marshIdx;
+	int tubeId;
+	@MaxLenAttr(32) WeaponParamValue[] updateParams;
+}
+
+
+/// Client sends commands to (de)activate torpedo
+struct WireGuidanceActivateReq
+{
+	__gshared const int g_marshIdx;
+	int tubeId;
+	bool shouldBeActive;
+}
+
+
+/// Periodic update from a wire-guided weapon
+struct WireGuidanceReportRes
+{
+	__gshared const int g_marshIdx;
+	WireGuidanceFullState wireGuidanceState;
 }
 
 /// Server reports tube state change.

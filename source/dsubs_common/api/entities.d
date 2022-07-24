@@ -233,6 +233,12 @@ struct WeaponTemplate
 	// float fuelSpent = pow(m_torpedo.propulsor.throttle.fabs, m_fuelExponent);
 	// m_fuelLeft -= fuelSpent;
 	float fuelExponent = 0.0f;
+
+	/// If true, wire commands can be used to control the weapon after launch.
+	bool wireGuided;
+
+	/// Set of params that can be changed post-launch via wire guidance.
+	WeaponParamType wireControlledParams;
 }
 
 struct WeaponSet
@@ -311,6 +317,20 @@ struct TubeFullState
 	string desiredWeapon;
 	TubeState currentState;
 	TubeState desiredState;
+	bool wireGuidanceActive;
+	string wireGuidedWeapon;
+}
+
+struct WireGuidanceFullState
+{
+	int tubeId;
+	float fuelLeft = 0.0f;
+	KinematicSnapshot weaponSnap;
+	// both read-only and editable params will be here
+	WeaponParamValue[] weaponParams;
+	bool active;
+	bool tracking;				/// when active and tracking a detected target
+	double trackingDir = 0.0f;	/// Azimuth to detected target when tracking is true
 }
 
 /// Torpedo/decoy storage
