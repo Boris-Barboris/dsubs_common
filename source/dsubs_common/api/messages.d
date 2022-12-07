@@ -153,8 +153,10 @@ struct ReconnectReq
 	__gshared const int g_marshIdx;
 }
 
-/// Right after successfull spawn or reconnection server flushes the submarine
-/// configuration and state to the client using this message.
+/// Right after successfull spawn or reconnection, the server flushes the submarine
+/// configuration and state to the client using this message. It is sufficient to
+/// get the full observable state of all controllable parts of the sub, it's
+/// weapons and systems, as well as scenario goal and communication state.
 @Compressed
 struct ReconnectStateRes
 {
@@ -277,7 +279,7 @@ struct SimulatorTerminatingRes
 /// Client requests to change desired loaded weapon.
 /// If the tube is in incorrect state, message is ignored.
 /// To unload the weapon from the tube completely, set
-/// 'weaponName' to empty string.
+/// 'weaponName' to empty string/null.
 struct LoadTubeReq
 {
 	__gshared const int g_marshIdx;
@@ -310,11 +312,11 @@ struct LaunchTubeReq
 }
 
 
-/// Client sends commands to update parameters of a torpedo
+/// Client sends commands to update parameters of a wire-guided torpedo
 struct WireGuidanceUpdateParamsReq
 {
 	__gshared const int g_marshIdx;
-	int tubeId;
+	@MaxLenAttr(64) string wireGuidanceId;
 	@MaxLenAttr(32) WeaponParamValue[] updateParams;
 }
 
@@ -323,17 +325,29 @@ struct WireGuidanceUpdateParamsReq
 struct WireGuidanceActivateReq
 {
 	__gshared const int g_marshIdx;
-	int tubeId;
+	@MaxLenAttr(64) string wireGuidanceId;
 	bool shouldBeActive;
 }
 
 
 /// Periodic update from a wire-guided weapon
-struct WireGuidanceReportRes
+struct WireGuidanceStateRes
 {
 	__gshared const int g_marshIdx;
+	// weaponParams are set only in the very first such message, right
+	// after torpedo's launch.
 	WireGuidanceFullState wireGuidanceState;
 }
+
+
+/// Sent on guided torp detonation, wire cut or fuel exhaustion
+struct WireGuidanceLostRes
+{
+	__gshared const int g_marshIdx;
+	int tubeId;
+	string wireGuidanceId;
+}
+
 
 /// Server reports tube state change.
 struct TubeStateUpdateRes

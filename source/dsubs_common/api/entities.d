@@ -118,7 +118,7 @@ struct SubmarineTemplate
 enum WeaponParamType: ushort
 {
 	none = 0,				/// no weapon params available
-	course = 1,				/// march/RTE course.
+	course = 1,
 	sensorMode = 1 << 1,
 	marchSpeed = 1 << 2, 	/// speed before activation. RTE speed.
 	activeSpeed = 1 << 3,	/// speed after activation
@@ -302,6 +302,8 @@ struct TubeTemplate
 	TubeType type;
 	/// when true, you can select the ammunition that will be loaded
 	bool loadedOnSpawn;
+	/// true when supports wire guidance
+	bool wireGuidance;
 }
 
 struct TubeSpawnState
@@ -318,19 +320,22 @@ struct TubeFullState
 	TubeState currentState;
 	TubeState desiredState;
 	bool wireGuidanceActive;
-	string wireGuidedWeapon;
+	string wireGuidedWeaponName;	/// weapon template name
+	string wireGuidanceId;
 }
 
 struct WireGuidanceFullState
 {
-	int tubeId;
-	float fuelLeft = 0.0f;
+	string wireGuidanceId;
+	int tubeId;		/// id of the tube that launched it
+	float rangeLeft = 0.0f;
 	KinematicSnapshot weaponSnap;
-	// both read-only and editable params will be here
-	WeaponParamValue[] weaponParams;
 	bool active;
-	bool tracking;				/// when active and tracking a detected target
+	bool tracking;				/// true when active and homing on a detected target
 	double trackingDir = 0.0f;	/// Azimuth to detected target when tracking is true
+	/// Both read-only and editable params will be here, but only when
+	/// reconnecting or right after weapon launch.
+	WeaponParamValue[] weaponParams;
 }
 
 /// Torpedo/decoy storage
