@@ -317,7 +317,7 @@ struct WireGuidanceUpdateParamsReq
 {
 	__gshared const int g_marshIdx;
 	@MaxLenAttr(64) string wireGuidanceId;
-	@MaxLenAttr(32) WeaponParamValue[] updateParams;
+	@MaxLenAttr(32) WeaponParamValue[] weaponParams;
 }
 
 

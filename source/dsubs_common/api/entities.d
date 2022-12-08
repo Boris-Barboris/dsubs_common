@@ -131,8 +131,7 @@ enum WeaponSensorMode: ubyte
 {
 	active = 1,
 	passive = 2,
-	activePassive = 4,		/// alternating active/passive search
-	dumb = 8
+	dumb = 4
 }
 
 /// Generic clamped float
