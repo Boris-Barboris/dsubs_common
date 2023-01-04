@@ -1,7 +1,7 @@
 {
 	"name": "dsubs_common",
 	"homepage": "https://github.com/Boris-Barboris/dsubs_common",
-	"version": "0.3.0",
+	"version": "0.4.1",
 	"authors": [
 		"Boris-Barboris"
 	],
@@ -14,7 +14,7 @@
 		"requireBoundsCheck"
 	],
 	"description": "Common library for dsubs",
-	"copyright": "Copyright (C) 2017-2021, Alexander Baranin",
+	"copyright": "Copyright (C) 2017-2023, Alexander Baranin",
 	"targetType": "library",
 	"license": "AGPL-3.0"
 }
