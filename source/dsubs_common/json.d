@@ -23,6 +23,7 @@ import std.conv: to;
 import std.exception: enforce;
 import std.json;
 import std.traits;
+import std.typecons: Nullable;
 import std.meta;
 import std.utf: validate;
 import std.math: isNaN, isInfinity;
@@ -149,6 +150,14 @@ JSONValue toJson(VecT)(const ref VecT ptr)
 	return JSONValue(ptr.v);
 }
 
+JSONValue toJson(NullableVal)(const ref NullableVal val)
+	if (isInstanceOf!(Nullable, NullableVal))
+{
+	if (val.isNull)
+		return JSONValue(null);
+	return toJson(val.get);
+}
+
 void deserializeJson(VecT: Vector!(Elt, N), Elt, int N)(
 	ref VecT ptr, const JSONValue jv)
 	//if (__traits(isSame, TemplateOf!VecT, Vector))
@@ -156,6 +165,20 @@ void deserializeJson(VecT: Vector!(Elt, N), Elt, int N)(
 {
 	foreach (i; 0 .. N)
 		deserializeJson(ptr.v[i], jv.array[i]);
+}
+
+void deserializeJson(NullT: Nullable!ValT, ValT)(
+		ref NullT ptr, const JSONValue jv)
+	if (isInstanceOf!(Nullable, NullT))
+{
+	if (jv.isNull())
+		ptr = NullT.init;
+	else
+	{
+		ValT val;
+		deserializeJson(val, jv);
+		ptr = val;
+	}
 }
 
 JSONValue[] toJson(ArrayT)(const ArrayT ptr)
@@ -177,23 +200,35 @@ void deserializeJson(ArrayT: Elt[], Elt)(ref ArrayT ptr, const JSONValue jv)
 }
 
 JSONValue toJson(StructT)(const ref StructT ptr)
-	if (is(StructT == struct) && !isVector!StructT)
+	if (is(StructT == struct) && !isVector!StructT && !isInstanceOf!(Nullable, StructT))
 {
 	JSONValue[string] kvpairs;
-	foreach (field; FieldNames!StructT)
+	static foreach (field; FieldNames!StructT)
 	{
-		kvpairs[field] = toJson(__traits(getMember, ptr, field));
+		// skip pointer serialization
+		static if (isPointer!(TypeOfMember!(StructT, field)))
+		{}
+		else
+		{
+			kvpairs[field] = toJson(__traits(getMember, ptr, field));
+		}
 	}
 	return JSONValue(kvpairs);
 }
 
 void deserializeJson(StructT)(ref StructT ptr, const JSONValue jv)
-	if (is(StructT == struct) && !isVector!StructT)
+	if (is(StructT == struct) && !isVector!StructT && !isInstanceOf!(Nullable, StructT))
 {
-	foreach (field; FieldNames!StructT)
+	static foreach (field; FieldNames!StructT)
 	{
-		if (field in jv.object)
-			deserializeJson(__traits(getMember, ptr, field), jv.object[field]);
+		// skip pointer serialization
+		static if (isPointer!(TypeOfMember!(StructT, field)))
+		{}
+		else
+		{
+			if (field in jv.object)
+				deserializeJson(__traits(getMember, ptr, field), jv.object[field]);
+		}
 	}
 }
 
