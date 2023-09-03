@@ -131,7 +131,9 @@ void deserializeJson(T)(ref T ptr, const JSONValue jv)
 				ptr = jv.str.to!T;
 				break;
 			case (JSONType.array):
-				ptr = T.init;
+				// not T.init because it is equal to first enum member, which may
+				// not be desirable for bitmask types
+				ptr = cast(T) 0;
 				foreach (jav; jv.array)
 					ptr |= jav.str.to!T;
 				break;
@@ -343,7 +345,7 @@ unittest
 		float[] floatVec = [1.0f, -3.14f, 0.0f];
 		float[3] staticArr = [-1.0f, 0.0f, 7.0f];
 		vec2f someVector = vec2f(42.0f, 9.0f);
-		EnumTestT enumField = EnumTestT.enum1 | EnumTestT.enum4;
+		EnumTestT enumField = EnumTestT.enum2 | EnumTestT.enum4;
 		SimpleEnum simpleEnum = SimpleEnum.e1;
 	}
 
@@ -357,7 +359,7 @@ unittest
 	t.str = "sadsad";
 	t.floatVec = [];
 	t.someVector = vec2f.init;
-	t.enumField = EnumTestT.enum2;
+	t.enumField = EnumTestT.enum1;
 	t.simpleEnum = SimpleEnum.e2;
 	t.staticArr = [0.0f, 0.0f, 0.0f];
 
