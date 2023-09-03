@@ -22,6 +22,7 @@ import core.bitop: popcnt;
 import std.conv: to;
 import std.exception: enforce;
 import std.json;
+public import std.json: JSONValue;
 import std.traits;
 import std.typecons: Nullable;
 import std.meta;
@@ -39,7 +40,7 @@ import dsubs_common.utils;
 
 
 JSONValue toJson(T)(const ref T ptr)
-	if (!is(T == struct) && (!isArray!T || isSomeString!T))
+	if (!is(T == struct) && !is(T == class) && (!isArray!T || isSomeString!T))
 {
 	static if (isBasicType!T && !hasIndirections!T &&
 		!is(T == enum) || isSomeString!T)
@@ -68,7 +69,7 @@ JSONValue toJson(T)(const ref T ptr)
 }
 
 void deserializeJson(T)(ref T ptr, const JSONValue jv)
-	if (!is(T == struct) && (!isArray!T || isSomeString!T))
+	if (!is(T == struct) && !is(T == class) && (!isArray!T || isSomeString!T))
 {
 	static if (isBasicType!T && !hasIndirections!T &&
 		!is(T == enum) || isSomeString!T)
@@ -216,6 +217,34 @@ JSONValue toJson(StructT)(const ref StructT ptr)
 	return JSONValue(kvpairs);
 }
 
+JSONValue toJson(ClassT)(const ClassT ptr)
+	if (is(ClassT == class))
+{
+	if (ptr is null)
+		return JSONValue(null);
+	JSONValue[string] kvpairs;
+	// first serialize fields of current class
+	static foreach (field; FieldNames!ClassT)
+	{
+		// skip pointer serialization
+		static if (isPointer!(TypeOfMember!(ClassT, field)))
+		{}
+		else
+		{
+			kvpairs[field] = toJson(__traits(getMember, ptr, field));
+		}
+	}
+	static if (BaseClassesTuple!ClassT.length)
+	{
+		// then all the fields of base classes
+		JSONValue parentClassJson =
+			toJson(cast(BaseClassesTuple!ClassT[0]) ptr);
+		foreach (pair; parentClassJson.object.byKeyValue)
+			kvpairs[pair.key] = pair.value;
+	}
+	return JSONValue(kvpairs);
+}
+
 void deserializeJson(StructT)(ref StructT ptr, const JSONValue jv)
 	if (is(StructT == struct) && !isVector!StructT && !isInstanceOf!(Nullable, StructT))
 {
@@ -232,7 +261,63 @@ void deserializeJson(StructT)(ref StructT ptr, const JSONValue jv)
 	}
 }
 
+void deserializeJson(ClassT)(ClassT ptr, const JSONValue jv)
+	if (is(ClassT == class))
+{
+	assert(ptr !is null);
+	if (jv.isNull)
+		return;
+	// start with base class fields
+	static if (BaseClassesTuple!ClassT.length)
+	{
+		// then all the fields of base classes
+		deserializeJson(cast(BaseClassesTuple!ClassT[0]) ptr, jv);
+	}
+	// then current class fields
+	static foreach (field; FieldNames!ClassT)
+	{
+		// skip pointer serialization
+		static if (isPointer!(TypeOfMember!(ClassT, field)))
+		{}
+		else
+		{
+			if (field in jv.object)
+				deserializeJson(__traits(getMember, ptr, field), jv.object[field]);
+		}
+	}
+}
 
+
+unittest
+{
+	class A
+	{
+		int a = 2;
+	}
+
+	class B: A
+	{
+		int b = 3;
+	}
+
+	class C: B
+	{
+		string c = "asdf";
+	}
+
+	C c = new C();
+	c.b = 4;
+	c.a = 1;
+	string serializationResult = c.toJson().toPrettyString();
+	info(serializationResult);
+	C c2 = new C();
+	assert(c2.a != c.a);
+	assert(c2.b != c.b);
+	deserializeJson(c2, parseJSON(serializationResult));
+	info(c2);
+	assert(c2.a == c.a);
+	assert(c2.b == c.b);
+}
 
 unittest
 {
