@@ -56,5 +56,9 @@ void serveTcp(Socket listenSock, scope void delegate(Socket) onAccept)
 			onAccept(s);
 		}
 	}
-	catch (SocketAcceptException) {}
+	catch (SocketAcceptException ex)
+	{
+		error("listenSock.accept threw: ", ex.msg);
+		throw ex;
+	}
 }
