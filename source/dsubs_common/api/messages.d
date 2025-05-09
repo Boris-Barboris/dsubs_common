@@ -1,6 +1,6 @@
 /*
 DSubs
-Copyright (C) 2017-2021 Baranin Alexander
+Copyright (C) 2017-2025 Baranin Alexander
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 20;
+	int apiVersion = 21;
 }
 
 /** This message requests authorization from the server.
@@ -72,6 +72,18 @@ struct LoginSuccessRes
 	string simulatorScenarioName;
 	/// and it's scenario type.
 	ScenarioType simulatorScenarioType;
+	/// Secret to use when logging in as the secondary connection.
+	@MaxLenAttr(64) string secondaryConnectionSecret;
+}
+
+/** This message requests to register this connection as secondary connection,
+that will be used by the server for non-critical volumnous data, such as
+sound streaming. Only one such connection can be registered per player. */
+struct LoginSecondaryReq
+{
+	__gshared const int g_marshIdx;
+	// secret from LoginSuccessRes
+	@MaxLenAttr(64) string secondaryConnectionSecret;
 }
 
 /// LoginReq rejection.
@@ -220,7 +232,8 @@ struct CourseReq
 	float target;
 }
 
-/// Sent by client in order to specify listening direction for a hydrophone
+/// Sent by client in order to specify listening/beamforming direction for a hydrophone.
+/// Contents of HydrophoneAudioStreamRes will correspond to this direction.
 struct ListenDirReq
 {
 	__gshared const int g_marshIdx;
@@ -228,17 +241,29 @@ struct ListenDirReq
 	float dir;		/// world-space listen direction
 }
 
-/// Server streams acoustic data to the player. All hydrophones that were active
-/// are represented here. If some hydrophone is absent, it is inactive.
-struct AcousticStreamRes
+/// Server streams hydrophone broadband data to the player.
+/// All hydrophones that were active are represented here.
+/// If some hydrophone is absent, it is inactive.
+struct HydrophoneDataStreamRes
 {
 	__gshared const int g_marshIdx;
 	usecs_t atTime;
 	HydrophoneData[] data;
+}
+
+/// Server streams hydrophone audio to the player via the separate
+/// "secondary" connection (to prevent severe lag on slow or remote links).
+/// All hydrophones that were active are represented here.
+/// If some hydrophone is absent, it is either
+/// inactive, or it's beamforming rotation was in the antennae deadzone.
+struct HydrophoneAudioStreamRes
+{
+	__gshared const int g_marshIdx;
+	usecs_t atTime;
 	HydrophoneAudio[] audio;
 }
 
-/// Active sonar data is stream to the player as well
+/// Active sonar data is streamed to the player after the ping.
 struct SonarStreamRes
 {
 	__gshared const int g_marshIdx;

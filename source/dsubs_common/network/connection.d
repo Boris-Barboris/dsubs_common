@@ -1,6 +1,6 @@
 /*
 DSubs
-Copyright (C) 2017-2021 Baranin Alexander
+Copyright (C) 2017-2025 Baranin Alexander
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -155,12 +155,24 @@ class ProtocolConnection(alias Protocol)
 		sendBytes(Protocol.marshal(msg));
 	}
 
+	/// Maximum number of messages that can be queued into the
+	/// connection write queue. When exceeded, sendMessage or sendBytes
+	/// will throw and close the underlying connection. Used to abort
+	/// stale or underperforming TCP connection.
+	int maxWriteQueueSize = 128;
+
+	/// Get current number of messages, queued in the writer queue.
+	final @property int writeQueueSize() const
+	{
+		return atomicLoad(m_writeQueueSize);
+	}
+
 	/// send asynchroniously (caller thread does not block)
 	final void sendBytes(immutable(ubyte)[] data)
 	{
 		if (m_closed)
 			return;
-		if (atomicOp!"+="(m_writeQueueSize, 1) > 128)
+		if (atomicOp!"+="(m_writeQueueSize, 1) > maxWriteQueueSize)
 		{
 			error(conId, " write queue overflow, closing");
 			close();
@@ -286,7 +298,7 @@ class ProtocolConnection(alias Protocol)
 			while (true)
 			{
 				int[2] header = recvHeader();
-				if (header[0] == -1)
+				if (header[0] == -1)	// FIXME: endianness
 				{
 					// Keel-alive message
 					continue;
@@ -341,6 +353,7 @@ class ProtocolConnection(alias Protocol)
 					if (timedOut)
 					{
 						// send keep-alive message
+						// FIXME: endianness
 						ubyte[8] ka;
 						*(cast(int*)ka.ptr) = int(-1);
 						sendBytesSync(ka[]);

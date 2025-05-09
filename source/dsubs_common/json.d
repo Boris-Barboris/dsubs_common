@@ -1,6 +1,6 @@
 /*
 DSubs
-Copyright (C) 2017-2023 Baranin Alexander
+Copyright (C) 2017-2025 Baranin Alexander
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -197,7 +197,10 @@ void deserializeJson(ArrayT: Elt[], Elt)(ref ArrayT ptr, const JSONValue jv)
 	if (isArray!ArrayT && !isSomeString!ArrayT)
 {
 	static if (!isStaticArray!ArrayT)
-		ptr.length = jv.array.length;
+	{
+		ptr = new Elt[jv.array.length];
+		// ptr.length = jv.array.length;	// this bugs out in multithreading
+	}
 	foreach (i, ref el; ptr)
 		deserializeJson(el, jv.array[i]);
 }

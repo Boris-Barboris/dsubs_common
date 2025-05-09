@@ -1,6 +1,6 @@
 /*
 DSubs
-Copyright (C) 2017-2021 Baranin Alexander
+Copyright (C) 2017-2025 Baranin Alexander
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -455,7 +455,7 @@ struct HydrophoneAudio
 	int hydrophoneIdx;
 	float listenDir;	// world-space direction of the beam
 	short[] samples;	// 16-bit PCB mono
-	int samplingRate;	// 8192 Hz
+	int samplingRate;	// always 8192 Hz atm (GLOBAL_SRATE)
 }
 
 
