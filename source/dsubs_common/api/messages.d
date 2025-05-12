@@ -44,7 +44,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 21;
+	int apiVersion = 22;
 }
 
 /** This message requests authorization from the server.
@@ -199,6 +199,11 @@ struct ReconnectStateRes
 	bool isPaused;
 	/// Can the simulator be paused.
 	bool canBePaused;
+	/// Time acceleration factor of the simulator. 10 means normal speed.
+	/// 5 means 0.5x, and everything is slowmo.
+	/// 80 means the simlator runs 8x normal speed.
+	/// Server currently accepts values from 5 to 80.
+	short timeAccelerationFactor;
 }
 
 /*
@@ -435,6 +440,23 @@ struct SimulatorPausedRes
 {
 	__gshared const int g_marshIdx;
 	bool isPaused;
+}
+
+/// Non-persistent simulators can change their time acceleration factor
+struct TimeAccelerationReq
+{
+	__gshared const int g_marshIdx;
+	// 10 is normal, 5 is 0.5x (slow), 80 is 8x (fast).
+	// Server currently accepts values from 5 to 80.
+	short timeAccelerationFactor;
+}
+
+/// Simulator broadcasts it's time acceleration after TimeAccelerationReq.
+struct TimeAccelerationRes
+{
+	__gshared const int g_marshIdx;
+	// 10 is normal, 5 is 0.5x (slow), 80 is 8x (fast).
+	short timeAccelerationFactor;
 }
 
 
