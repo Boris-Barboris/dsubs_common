@@ -44,7 +44,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 22;
+	int apiVersion = 23;
 }
 
 /** This message requests authorization from the server.
@@ -176,6 +176,8 @@ struct ReconnectStateRes
 	/// Globally-unique submarine identifier. Can be used to restore CIC state
 	/// from backup after client crash.
 	string subId;
+	/// Simulator identifier. Useful for watching replays later.
+	string simulatorId;
 	string submarineName;
 	string propulsorName;
 	KinematicSnapshot subSnap;
@@ -468,7 +470,7 @@ struct TimeAccelerationRes
 struct ReplayGetDataReq
 {
 	__gshared const int g_marshIdx;
-	/// "main_arena" for default pvp scenario.
+	/// "main_arena" for default pvp scenario. Otherwise, simulatorId.
 	@MaxLenAttr(256) string simulatorInstance;
 	/// Some scenarios run for days or weeks. We do not give more than 1 day
 	/// worth of data. YYYY-MM-DD format.
