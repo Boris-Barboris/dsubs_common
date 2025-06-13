@@ -292,6 +292,34 @@ void deserializeJson(ClassT)(ClassT ptr, const JSONValue jv)
 	}
 }
 
+void deserializeJson(ClassT)(ref ClassT ptr, const JSONValue jv)
+	if (is(ClassT == class))
+{
+	if (ptr is null)
+		ptr = new ClassT();
+	assert(ptr !is null);
+	if (jv.isNull)
+		return;
+	// start with base class fields
+	static if (BaseClassesTuple!ClassT.length)
+	{
+		// then all the fields of base classes
+		deserializeJson(cast(BaseClassesTuple!ClassT[0]) ptr, jv);
+	}
+	// then current class fields
+	static foreach (field; FieldNames!ClassT)
+	{
+		// skip pointer serialization
+		static if (isPointer!(TypeOfMember!(ClassT, field)))
+		{}
+		else
+		{
+			if (field in jv.object)
+				deserializeJson(__traits(getMember, ptr, field), jv.object[field]);
+		}
+	}
+}
+
 
 unittest
 {
