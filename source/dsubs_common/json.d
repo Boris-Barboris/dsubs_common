@@ -22,7 +22,7 @@ import core.bitop: popcnt;
 import std.conv: to;
 import std.exception: enforce;
 import std.json;
-public import std.json: JSONValue;
+public import std.json: JSONValue, JSONOptions;
 import std.traits;
 import std.typecons: Nullable;
 import std.meta;

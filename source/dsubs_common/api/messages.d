@@ -24,6 +24,7 @@ public import std.uuid;
 
 public import dsubs_common.api.constants;
 public import dsubs_common.api.entities;
+public import dsubs_common.api.deventities;
 public import dsubs_common.api.utils;
 
 
@@ -44,7 +45,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 23;
+	int apiVersion = 24;
 }
 
 /** This message requests authorization from the server.
@@ -74,6 +75,8 @@ struct LoginSuccessRes
 	ScenarioType simulatorScenarioType;
 	/// Secret to use when logging in as the secondary connection.
 	@MaxLenAttr(64) string secondaryConnectionSecret;
+	/// When true, the user is granted developer privileges.
+	bool developerMode;
 }
 
 /** This message requests to register this connection as secondary connection,
@@ -485,4 +488,56 @@ struct ReplayDataRes
 	/// Slices are generated for this date. YYYY-MM-DD format.
 	string metricsDate;
 	ReplaySlice[] replaySlices;
+}
+
+
+//
+// Dev-mode messages
+//
+
+/// When in developer mode, list simulators that can be observed
+struct DevSimulatorsListReq
+{
+	__gshared const int g_marshIdx;
+}
+
+struct DevSimulatorsListRes
+{
+	__gshared const int g_marshIdx;
+	SimulatorRecord[] simulators;
+}
+
+/// Enter simulator observation mode
+struct DevObserveSimulatorReq
+{
+	__gshared const int g_marshIdx;
+	string uniqId;
+}
+
+@Compressed
+struct DevObserveSimulatorRes
+{
+	__gshared const int g_marshIdx;
+	bool success;	// may be false for some reason
+	SimulatorRecord simRecord;
+	// full entity state sync
+	ObservableEntityUpdate[] allEntities;
+}
+
+/// Periodically streamed on each simulator update to the observer's client.
+struct DevObserverSimulatorUpdateRes
+{
+	__gshared const int g_marshIdx;
+	usecs_t atTime;
+	/// Full entity state sync.
+	/// If some entity is missing from the list, it was destroyed.
+	ObservableEntityUpdate[] existingEntities;
+	/// Special messages that are of note to the developers.
+	SimulatorLogRecord[] logRecords;
+}
+
+/// Stop observing simulator request. Always succeeds.
+struct DevStopObservingReq
+{
+	__gshared const int g_marshIdx;
 }
