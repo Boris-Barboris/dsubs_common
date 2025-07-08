@@ -113,7 +113,7 @@ float toLinear(float db)
 /// https://en.wikipedia.org/wiki/Cubic_Hermite_spline
 auto chspline(FT, TT)(FT p0, FT p1, FT m0, FT m1, TT t, TT dt)
 {
-	assert(t >= 0.0 && t <= 1.0);
+	assert(t >= 0.0 && t <= 1.0, t.to!string);
 	double t_2 = t * t;
 	double t_3 = t_2 * t;
 
