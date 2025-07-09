@@ -3,65 +3,38 @@ module dsubs_common.lockmap;
 import core.sync.mutex: Mutex;
 
 
-final class LockMapMutex: Object.Monitor
+private final class LockMapMutex
 {
 	private
 	{
 		LockMap m_owner;
-		Mutex m_mut;
 		string m_key;
 	}
 
-	private this(LockMap owner, string key, Mutex sharedMut)
+	private this(LockMap owner, string key)
 	{
 		m_owner = owner;
-		m_mut = sharedMut;
 		m_key = key;
-	}
-
-	override void lock()
-	{
-		m_mut.lock();
-	}
-
-	override void unlock()
-	{
-		m_mut.unlock();
-		synchronized(m_owner)
-		{
-			LockMap.KeyCounter* oldCounter = m_key in m_owner.m_map;
-			assert(oldCounter);
-			assert(oldCounter.count > 0);
-			oldCounter.count--;
-			if (oldCounter.count == 0)
-				m_owner.m_map.remove(m_key);
-		}
 	}
 }
 
+
+/// Map of string keys that can be locked on using synchronized statement
 class LockMap
 {
-	private struct KeyCounter
-	{
-		Mutex mut;
-		int count;
-	}
-
-	private KeyCounter[string] m_map;
+	private LockMapMutex[string] m_map;
 
 	LockMapMutex get(string key)
 	{
+		assert(m_map.length < 10000, "unexpected load on m_map");
 		synchronized(this)
 		{
-			KeyCounter* counter = key in m_map;
-			if (counter)
-			{
-				counter.count++;
-				return new LockMapMutex(this, key, counter.mut);
-			}
-			KeyCounter newCounter = KeyCounter(new Mutex(), 1);
-			m_map[key] = newCounter;
-			return new LockMapMutex(this, key, newCounter.mut);
+			LockMapMutex* mut = key in m_map;
+			if (mut)
+				return *mut;
+			LockMapMutex newMut = new LockMapMutex(this, key);
+			m_map[key] = newMut;
+			return newMut;
 		}
 	}
 }
