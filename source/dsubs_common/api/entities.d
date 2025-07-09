@@ -655,7 +655,9 @@ enum ScenarioType: ubyte
 	persistentSimulator,
 	tutorial,
 	campaignMission,
-	standalone
+	standalone,
+	// developer mode sandbox, cannot be used by common users
+	developer
 }
 
 /// Collection of missions that must be completed one-by-one.

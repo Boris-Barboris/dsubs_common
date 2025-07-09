@@ -45,7 +45,7 @@ struct ServerStatusRes
 	/// Total number of authorized players currently online.
 	int playersOnline;
 	/// Client and server values must match exactly.
-	int apiVersion = 24;
+	int apiVersion = 25;
 }
 
 /** This message requests authorization from the server.
@@ -540,4 +540,21 @@ struct DevObserverSimulatorUpdateRes
 struct DevStopObservingReq
 {
 	__gshared const int g_marshIdx;
+}
+
+/// Unconditional simulator termination request
+struct DevTerminateSimulatorReq
+{
+	__gshared const int g_marshIdx;
+	string simulatorUniqId;
+}
+
+/// Request to create simulator without spawning in it and make it run without
+/// a player.
+struct DevCreateSimulatorReq
+{
+	__gshared const int g_marshIdx;
+	/// Scenario name to create new simulator from. Can be chosen from
+	/// 'developer'-type scenarios.
+	@MaxLenAttr(256) string scenarioName;
 }
